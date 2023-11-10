@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        canvas {
+            border: 1px solid #000;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+    <title>Raycasting Game</title>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const MAP_WIDTH = 10;
+        const MAP_HEIGHT = 10;
+
+        const worldMap = [
+            ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
+            ['#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
+            ['#', ' ', '#', '#', '#', '#', '#', ' ', ' ', '#'],
+            ['#', ' ', '#', ' ', ' ', ' ', '#', ' ', ' ', '#'],
+            ['#', ' ', '#', ' ', '#', ' ', '#', ' ', ' ', '#'],
+            ['#', ' ', '#', ' ', '#', ' ', '#', '#', '#', '#'],
+            ['#', ' ', '#', ' ', '#', ' ', ' ', ' ', ' ', '#'],
+            ['#', ' ', '#', ' ', '#', '#', '#', '#', ' ', '#'],
+            ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', '#'],
+            ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#']
+        ];
+
+        const SCREEN_WIDTH = 800;
+        const SCREEN_HEIGHT = 400;
+
+        let playerX = 5.0;
+        let playerY = 5.0;
+        let playerAngle = 0.0;
+
+        const fov = Math.PI / 3.0; // Field of view
+
+        function drawWalls() {
+            for (let x = 0; x < SCREEN_WIDTH; x++) {
+                const rayAngle = (playerAngle - fov / 2.0) + (x / SCREEN_WIDTH) * fov;
+
+                let rayX = playerX;
+                let rayY = playerY;
+                const rayDirX = Math.cos(rayAngle);
+                const rayDirY = Math.sin(rayAngle);
+
+                while (worldMap[Math.floor(rayX)][Math.floor(rayY)] === ' ') {
+                    rayX += rayDirX * 0.1;
+                    rayY += rayDirY * 0.1;
+                }
+
+                const distance = Math.sqrt((rayX - playerX) ** 2 + (rayY - playerY) ** 2);
+                const wallHeight = SCREEN_HEIGHT / distance;
+
+                ctx.strokeStyle = '#fff';
+                ctx.beginPath();
+                ctx.moveTo(x, (SCREEN_HEIGHT - wallHeight) / 2);
+                ctx.lineTo(x, (SCREEN_HEIGHT + wallHeight) / 2);
+                ctx.stroke();
+            }
+        }
+
+        function update() {
+            drawWalls();
+        }
+
+        function handleKeyPress(event) {
+            switch (event.key) {
+                case 'a':
+                    playerAngle -= 0.1;
+                    break;
+                case 'd':
+                    playerAngle += 0.1;
+                    break;
+                case 'w':
+                    playerX += Math.cos(playerAngle) * 0.5;
+                    playerY += Math.sin(playerAngle) * 0.5;
+                    break;
+                case 's':
+                    playerX -= Math.cos(playerAngle) * 0.5;
+                    playerY -= Math.sin(playerAngle) * 0.5;
+                    break;
+            }
+        }
+
+        function gameLoop() {
+            update();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('keydown', handleKeyPress);
+        gameLoop();
+    </script>
+</body>
+</html>
